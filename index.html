@@ -1,0 +1,196 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knockout Store - Tienda de Mariana Torres</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Knockout Store</h1>
+        <h2 class="subtitulo">Tienda de Mariana Torres</h2>
+        <div class="carrito-icono" onclick="mostrarCarrito()">
+            🛒 <span id="contador-carrito">0</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="filtro">
+            <label for="filtro-categoria">Filtrar por categoría:</label>
+            <select id="filtro-categoria" onchange="filtrarProductos()">
+                <option value="todos">Todos</option>
+                <option value="Protección">Protección</option>
+                <option value="Entrenamiento">Entrenamiento</option>
+                <option value="Accesorios">Accesorios</option>
+            </select>
+        </div>
+
+        <div class="productos">
+            <div class="producto" data-categoria="Entrenamiento">
+                <img src="https://i.postimg.cc/Z51vGXrK/a-photograph-of-a-pair-of-blue-boxing-gl.jpg" alt="Guantes de Boxeo">
+                <h3>Guantes de Boxeo</h3>
+                <p>$150</p>
+                <button onclick="agregarAlCarrito('Guantes de Boxeo', 150)">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-categoria="Accesorios">
+                <img src="https://i.postimg.cc/LXvtFN9C/Gemini-Generated-Image-a91srsa91srsa91s.jpg" alt="Vendas para manos">
+                <h3>Vendas para manos</h3>
+                <p>$80</p>
+                <button onclick="agregarAlCarrito('Vendas para manos', 80)">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-categoria="Protección">
+                <img src="https://i.postimg.cc/VvVXdvbX/Gemini-Generated-Image-3i8c6h3i8c6h3i8c.jpg" alt="Protector Bucal">
+                <h3>Protector Bucal</h3>
+                <p>$40</p>
+                <button onclick="agregarAlCarrito('Protector Bucal', 40)">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-categoria="Entrenamiento">
+                <img src="https://i.postimg.cc/y8FSzvnm/Gemini-Generated-Image-63kfvw63kfvw63kf.jpg" alt="Saco de boxeo">
+                <h3>Saco de boxeo</h3>
+                <p>$220</p>
+                <button onclick="agregarAlCarrito('Saco de boxeo', 220)">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-categoria="Accesorios">
+                <img src="https://i.postimg.cc/bNnZQ377/Gemini-Generated-Image-i16qxli16qxli16q.jpg" alt="Cuerda para Saltar">
+                <h3>Cuerda para Saltar</h3>
+                <p>$15</p>
+                <button onclick="agregarAlCarrito('Cuerda para Saltar', 15)">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-categoria="Protección">
+                <img src="https://i.postimg.cc/rpRxzx1j/Gemini-Generated-Image-5238l15238l15238.jpg" alt="Casco protector">
+                <h3>Casco protector</h3>
+                <p>$96</p>
+                <button onclick="agregarAlCarrito('Casco protector', 96)">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-categoria="Entrenamiento">
+                <img src="https://i.postimg.cc/Gm1HzvrH/Gemini-Generated-Image-escov3escov3esco.jpg" alt="Botas de Entrenamiento">
+                <h3>Botas de Entrenamiento</h3>
+                <p>$90</p>
+                <button onclick="agregarAlCarrito('Botas de Entrenamiento', 90)">Agregar al carrito</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="carrito-popup">
+        <h3>Carrito de Compras</h3>
+        <ul id="lista-carrito"></ul>
+        <p>Total: $<span id="total-carrito">0</span></p>
+        <button id="boton-comprar" onclick="finalizarCompra()" style="display: none;">Finalizar compra</button>
+        <button onclick="vaciarCarrito()">Vaciar carrito</button>
+        <button onclick="cerrarCarrito()">Cerrar</button>
+    </div>
+
+    <div id="paypal-button-container"></div>
+
+    <script>
+        function filtrarProductos() {
+            var categoriaSeleccionada = document.getElementById('filtro-categoria').value;
+            var productos = document.querySelectorAll('.producto');
+
+            productos.forEach(function(producto) {
+                var categoriaProducto = producto.getAttribute('data-categoria');
+                
+                if (categoriaSeleccionada === 'todos' || categoriaProducto === categoriaSeleccionada) {
+                    producto.style.display = 'block';
+                } else {
+                    producto.style.display = 'none';
+                }
+            });
+        }
+
+        function agregarAlCarrito(nombre, precio) {
+            var carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            var productoExistente = carrito.find(function(item) {
+                return item.nombre === nombre;
+            });
+
+            if (productoExistente) {
+                productoExistente.cantidad++;
+            } else {
+                carrito.push({ nombre: nombre, precio: precio, cantidad: 1 });
+            }
+
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarCarrito();
+        }
+
+        function actualizarCarrito() {
+            var carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            var contador = 0;
+            var total = 0;
+
+            carrito.forEach(function(item) {
+                contador += item.cantidad;
+                total += item.precio * item.cantidad;
+            });
+
+            document.getElementById('contador-carrito').textContent = contador;
+            document.getElementById('total-carrito').textContent = total;
+
+            var listaCarrito = document.getElementById('lista-carrito');
+            listaCarrito.innerHTML = '';
+
+            carrito.forEach(function(item) {
+                var li = document.createElement('li');
+                li.textContent = item.nombre + ' - $' + item.precio + ' x ' + item.cantidad;
+                listaCarrito.appendChild(li);
+            });
+
+            if (total > 0) {
+                document.getElementById('boton-comprar').style.display = 'inline';
+            } else {
+                document.getElementById('boton-comprar').style.display = 'none';
+            }
+        }
+
+        function mostrarCarrito() {
+            document.getElementById('carrito-popup').style.display = 'block';
+        }
+
+        function vaciarCarrito() {
+            localStorage.removeItem('carrito');
+            actualizarCarrito();
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('carrito-popup').style.display = 'none';
+        }
+
+        function finalizarCompra() {
+            alert('Gracias por tu compra!');
+            vaciarCarrito();
+        }
+
+        // Inicialización de PayPal
+        function cargarPayPal() {
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: document.getElementById('total-carrito').textContent
+                            }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        alert('Gracias por tu compra, ' + details.payer.name.given_name + '!');
+                        vaciarCarrito();
+                        cerrarCarrito();
+                    });
+                }
+            }).render('#paypal-button-container');
+        }
+
+        // Cargar el SDK de PayPal (modo sandbox)
+        var script = document.createElement('script');
+        script.src = "https://www.paypal.com/sdk/js?client-id=sb&currency=USD";
+        script.onload = cargarPayPal;
+        document.body.appendChild(script);
+
+        // Inicializar carrito al cargar
+        actualizarCarrito();
+    </script>
+</body>
+</html>
